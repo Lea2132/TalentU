@@ -1,0 +1,251 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Variables for Dynamic Theming */
+:root {
+  --color-primary: #2563eb;
+  --color-secondary: #1e40af;
+  --color-light: #dbeafe;
+}
+
+html[data-theme="blue"] {
+  --color-primary: #2563eb;
+  --color-secondary: #1e40af;
+  --color-light: #dbeafe;
+}
+
+html[data-theme="green"] {
+  --color-primary: #16a34a;
+  --color-secondary: #15803d;
+  --color-light: #dcfce7;
+}
+
+/* Override common Tailwind "blue" utilities to follow the current theme's primary color.
+   This lets existing components that use bg-blue-*, text-blue-*, border-blue-* etc.
+   automatically follow the selected theme (blue/green/dark) by mapping
+   those utilities to the CSS variable --color-primary. */
+
+/* Background blue utilities -> primary */
+.bg-blue-500, .bg-blue-600, .bg-blue-700, .bg-blue-800, .bg-blue-900 {
+  background-color: var(--color-primary) !important;
+}
+.hover\:bg-blue-600:hover, .hover\:bg-blue-800:hover {
+  background-color: var(--color-primary) !important;
+}
+
+/* Lighter blue backgrounds */
+.bg-blue-100, .bg-blue-200, .bg-blue-300, .bg-blue-400 {
+  background-color: var(--color-light) !important;
+}
+
+/* Very light blue background (page backgrounds) */
+.bg-blue-50 {
+  background-color: color-mix(in srgb, var(--color-light) 70%, white) !important;
+}
+
+/* Text and border blue utilities -> primary */
+.text-blue-500, .text-blue-600, .text-blue-700, .text-blue-800 {
+  color: var(--color-primary) !important;
+}
+.text-blue-900 {
+  color: color-mix(in srgb, var(--color-primary) 90%, black) !important;
+}
+.border-blue-500, .border-blue-600 {
+  border-color: var(--color-primary) !important;
+}
+
+.border-blue-300 {
+  border-color: color-mix(in srgb, var(--color-primary) 60%, white) !important;
+}
+
+/* Shadows using blue tints (approximate) */
+.shadow-blue-300, .shadow-blue-400 {
+  --tw-shadow-color: var(--color-primary) !important;
+}
+.hover\:shadow-blue-300:hover, .hover\:shadow-blue-400:hover {
+  --tw-shadow-color: var(--color-primary) !important;
+}
+
+/* Ensure buttons and other elements that previously used blue text on white
+   or white text on blue inherit accessible on-primary color */
+.btn-primary, .button-login, .register-button, .buttons-profile {
+  color: var(--color-on-primary) !important;
+}
+
+/* Inputs focus ring override to use primary */
+.inputs-login:focus, .inputs-register:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
+}
+
+/* Special handling for nav background if library used bg-blue-700 directly */
+.bg-blue-700 {
+  background-color: var(--color-primary) !important;
+}
+
+/* When theme is dark, make sure general text on dark backgrounds is readable: */
+
+
+
+/*Estilos del login en tailwind que se pueden reciclar*/
+
+.inputs-login {
+  @apply w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:animate-shake animate-once animate-duration-[3000ms] animate-delay-[2000ms];
+}
+
+html[data-theme="blue"] .inputs-login {
+  @apply focus:ring-blue-600;
+}
+
+html[data-theme="green"] .inputs-login {
+  @apply focus:ring-green-600;
+}
+
+.form-login {
+  @apply bg-secondary bg-opacity-80 p-8 rounded-lg shadow-md w-full max-w-md animate-jump animate-once animate-duration-[3000ms] animate-delay-[2000ms];
+}
+
+.button-login {
+  @apply w-full p-3 text-white rounded-xl shadow-xl duration-3000 font-bold;
+}
+
+html[data-theme="blue"] .button-login {
+  @apply bg-blue-600 hover:bg-blue-800 hover:shadow-blue-300;
+}
+
+html[data-theme="green"] .button-login {
+  @apply bg-green-600 hover:bg-green-800 hover:shadow-green-300;
+}
+
+.text-login-left {
+  @apply animate-fade-right animate-once animate-ease-linear;
+}
+
+
+
+/* Estilos del resgiter en tailwind que se pueden reciclar*/
+
+
+.form-container {
+  @apply bg-secondary bg-opacity-80 shadow-lg rounded-lg p-8 w-full md:w-1/2 mr-5 animate-fade-right animate-once animate-duration-[2000ms] animate-delay-[2000ms] animate-ease-linear;
+}
+
+.title {
+  @apply text-3xl font-bold text-center mb-4;
+}
+
+html[data-theme="blue"] .title {
+  @apply text-blue-600;
+}
+
+html[data-theme="green"] .title {
+  @apply text-green-600;
+}
+
+.input-container {
+  @apply flex items-center pb-2;
+}
+
+html[data-theme="blue"] .input-container {
+  @apply border-b border-blue-300;
+}
+
+html[data-theme="green"] .input-container {
+  @apply border-b border-green-300;
+}
+
+.inputs-register {
+  @apply placeholder-gray-700 bg-transparent outline-none flex-1;
+}
+
+.error-messages {
+  @apply font-bold rounded-lg p-2 text-red-600;
+}
+
+html[data-theme="blue"] .error-messages {
+  @apply bg-blue-100;
+}
+
+html[data-theme="green"] .error-messages {
+  @apply bg-green-100;
+}
+
+.register-button {
+  @apply py-3 text-white rounded-xl shadow-xl duration-3000 font-bold;
+}
+
+html[data-theme="blue"] .register-button {
+  @apply bg-blue-600 hover:bg-blue-800 hover:shadow-blue-300;
+}
+
+html[data-theme="green"] .register-button {
+  @apply bg-green-600 hover:bg-green-800 hover:shadow-green-300;
+}
+
+.link {
+  @apply text-center mt-4;
+}
+
+html[data-theme="blue"] .link {
+  @apply text-blue-800;
+}
+
+html[data-theme="green"] .link {
+  @apply text-green-800;
+}
+
+.why-register-container {
+  @apply bg-secondary bg-opacity-80 shadow-lg rounded-lg p-8 w-full md:w-1/2 flex items-center justify-center animate-fade-left animate-once animate-duration-[2000ms] animate-delay-[2000ms] animate-ease-linear;
+}
+
+.why-title {
+  @apply text-2xl font-bold mb-2;
+}
+
+html[data-theme="blue"] .why-title {
+  @apply text-blue-600;
+}
+
+html[data-theme="green"] .why-title {
+  @apply text-green-600;
+}
+
+.why-text {
+  @apply mb-4;
+}
+
+html[data-theme="blue"] .why-text {
+  @apply text-gray-800;
+}
+
+html[data-theme="green"] .why-text {
+  @apply text-gray-800;
+}
+
+
+/*Estilos del hpme en tailwind que se pueden reciclar*/
+
+.animated-down{
+  @apply animate-fade-down animate-duration-[2000ms] animate-delay-[2000ms]
+
+}
+
+.buttons-profile{
+  @apply px-6 py-3 rounded-2xl border transition mx-6 flex items-center cell:text-sm md:text-lg lg:text-xl duration-2000 shadow-xl animate-flip-down animate-duration-[2000ms] animate-delay-[2000ms];
+  font-weight: 600;
+}
+
+html[data-theme="blue"] .buttons-profile {
+  @apply bg-white border-blue-600 hover:bg-blue-600 hover:text-white hover:shadow-blue-400;
+  color: #2563eb !important;
+}
+
+html[data-theme="green"] .buttons-profile {
+  @apply bg-white border-green-700 hover:bg-green-600 hover:text-white hover:shadow-green-400;
+  color: #16a34a !important;
+}
+
+.animated-opciones{
+  @apply animate-fade-down animate-once animate-duration-[2000ms] animate-delay-[2000ms]
+}
