@@ -1,10 +1,12 @@
 /* eslint-disable react/prop-types */
-import { Edit, Trash, PlusCircle, XCircle } from 'lucide-react';
+import { Edit, Trash, PlusCircle, XCircle, ImageOff } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useState } from 'react';
 
-const ProductCard = ({ product, handleEdit, handleDelete, handlePublish }) => {
-  const imageUrl = `http://localhost:3000/${product.image_url.replace(/\\/g, '/')}`;
+const ProductCard = ({ product, handleEdit, handleDelete, onPublishChange }) => {
+  const imageUrl = product.image_url
+    ? `http://localhost:3000/${product.image_url.replace(/\\/g, '/')}`
+    : null;
   const [isPublished, setIsPublished] = useState(product.is_published || false);
   const [loading, setLoading] = useState(false);
 
@@ -25,9 +27,10 @@ const ProductCard = ({ product, handleEdit, handleDelete, handlePublish }) => {
 
       if (response.ok) {
         setIsPublished(newStatus);
+        onPublishChange(product.id, newStatus);
         Swal.fire({
           title: '¡Éxito!',
-          text: newStatus ? 'Producto publicado correctamente' : 'Publicación removida',
+          text: newStatus ? 'Servicio publicado correctamente' : 'Publicación removida',
           icon: 'success',
           confirmButtonText: 'OK',
           confirmButtonColor: 'var(--color-primary)'
@@ -50,51 +53,81 @@ const ProductCard = ({ product, handleEdit, handleDelete, handlePublish }) => {
   };
 
   return (
-    <div className="bg-blue-200 shadow-md rounded p-4">
-      {product.image_url && (
-        <img
-          src={imageUrl} 
-          alt={product.title}
-          className="w-full h-48 object-cover rounded mb-4"
-        />
-      )}
-      <h3 className="text-lg font-bold text-blue-700">{product.title}</h3>
-      <p className="text-blue-600">{product.description}</p>
-      <p className="text-blue-800 font-bold">${product.price}</p>
-      <p className="text-blue-500">{product.category}</p>
-      <p className={`text-sm font-semibold mb-2 ${isPublished ? 'text-green-600' : 'text-gray-600'}`}>
-        {isPublished ? '✓ Publicado' : '○ No publicado'}
-      </p>
-      <div className="flex justify-end space-x-2 mt-4">
+    <article className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+      <div className="relative h-48 overflow-hidden bg-slate-100">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={product.title}
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-slate-400">
+            <ImageOff className="h-8 w-8" />
+            <span className="text-sm">Sin imagen</span>
+          </div>
+        )}
+        <span
+          className={`absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-bold shadow-sm ${
+            isPublished ? 'bg-emerald-100 text-emerald-800' : 'bg-white/95 text-slate-600'
+          }`}
+        >
+          {isPublished ? 'Publicado' : 'Borrador'}
+        </span>
+        <span
+          className="absolute right-3 top-3 rounded-full bg-white/95 px-3 py-1 text-xs font-bold shadow-sm"
+          style={{ color: 'var(--color-primary)' }}
+        >
+          {product.category}
+        </span>
+      </div>
+
+      <div className="p-5">
+        <h3 className="line-clamp-1 text-lg font-bold text-slate-900">{product.title}</h3>
+        <p className="mt-2 min-h-10 line-clamp-2 text-sm leading-5 text-slate-600">{product.description}</p>
+        <p className="mt-4 text-xl font-black" style={{ color: 'var(--color-primary)' }}>
+          {new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            maximumFractionDigits: 0,
+          }).format(Number(product.price) || 0)}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 border-t border-slate-100 bg-slate-50 p-4">
         <button
+          type="button"
           onClick={() => handleEdit(product)}
-          className="bg-yellow-500 text-white px-3 py-1 rounded flex items-center"
+          className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
         >
-          <Edit className="w-4 h-4 mr-1" /> Editar
+          <Edit className="mr-2 h-4 w-4" /> Editar
         </button>
         <button
+          type="button"
           onClick={() => handleDelete(product.id)}
-          className="bg-red-500 text-white px-3 py-1 rounded flex items-center"
+          className="inline-flex items-center justify-center rounded-xl border border-red-100 bg-white px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50"
         >
-          <Trash className="w-4 h-4 mr-1" /> Eliminar
+          <Trash className="mr-2 h-4 w-4" /> Eliminar
         </button>
         <button
+          type="button"
           onClick={handleTogglePublish}
           disabled={loading}
-          className={`text-white px-3 py-1 rounded flex items-center ${isPublished ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className="col-span-2 inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          style={{ backgroundColor: isPublished ? '#64748b' : 'var(--color-primary)' }}
         >
           {isPublished ? (
             <>
-              <XCircle className="w-4 h-4 mr-1" /> Quitar Publicación
+              <XCircle className="mr-2 h-4 w-4" /> Quitar publicación
             </>
           ) : (
             <>
-              <PlusCircle className="w-4 h-4 mr-1" /> Publicar
+              <PlusCircle className="mr-2 h-4 w-4" /> Publicar servicio
             </>
           )}
         </button>
       </div>
-    </div>
+    </article>
   );
 };
 

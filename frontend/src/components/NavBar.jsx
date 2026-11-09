@@ -1,5 +1,6 @@
 import { FaHeadset } from 'react-icons/fa';
 import { MdPalette } from 'react-icons/md';
+import { ChevronDown, Home as HomeIcon, MessageCircle } from 'lucide-react';
 import {
   Navbar,
   NavbarBrand,
@@ -13,16 +14,19 @@ import {
   Avatar,
 } from "@nextui-org/react";
 import logo from "../assets/image.png";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import Swal from "sweetalert2";
 import { ThemeContext } from "../context/ThemeContext";
+import { SERVICE_CATEGORIES } from "../constants/serviceCategories";
 
 const NavBar = () => {
   const redirect = useNavigate();
-  const { theme, handleThemeChange } = useContext(ThemeContext);
+  const location = useLocation();
+  const { handleThemeChange } = useContext(ThemeContext);
   const [isGuest, setIsGuest] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     // Detecta si está en modo invitado o si hay usuario logueado
@@ -35,8 +39,45 @@ const NavBar = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || localStorage.getItem('guest') === 'true') {
+      setUnreadMessages(0);
+      return undefined;
+    }
+
+    let active = true;
+    const fetchUnreadMessages = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/conversations', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error(`No se pudieron consultar mensajes (${response.status})`);
+        const conversations = await response.json();
+        if (active) {
+          setUnreadMessages(
+            conversations.reduce((total, conversation) => total + Number(conversation.unread_count || 0), 0)
+          );
+        }
+      } catch (error) {
+        console.error('Error al consultar mensajes sin leer:', error);
+      }
+    };
+
+    fetchUnreadMessages();
+    const intervalId = window.setInterval(fetchUnreadMessages, 15000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [location.pathname]);
+
   const handleNavigate = (path) => {
     redirect(path);
+  };
+
+  const navigateToCategory = (category) => {
+    handleNavigate(`/home?categoria=${encodeURIComponent(category)}#catalogo`);
   };
 
   const handleLogout = () => {
@@ -53,6 +94,7 @@ const NavBar = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         localStorage.removeItem("guest");
+        localStorage.removeItem("token");
         localStorage.removeItem("userData");
         localStorage.removeItem("isAdmin");
         redirect("/");
@@ -61,20 +103,103 @@ const NavBar = () => {
   };
 
   return (
-    <Navbar className="bg-blue-700 shadow-2xl mt-4 mx-auto max-w-[95%] rounded-md animate-fade-down animate-duration-[1000ms] animate-delay-[1000ms]">
+    <Navbar
+      className="mx-auto mt-4 max-w-[95%] rounded-2xl border border-slate-200/80 bg-white/95 shadow-lg shadow-slate-900/5 backdrop-blur-md animate-fade-down animate-duration-[1000ms] animate-delay-[1000ms]"
+      style={{ backgroundColor: 'rgba(255, 255, 255, 0.96)' }}
+    >
       {/* Logo y título */}
       <NavbarContent justify="start">
-        <NavbarBrand className="mr-4">
-          <img src={logo} alt="Logo" className="w-8 h-auto mr-2" />
-          <p className="sm:block font-bold text-inherit text-white">SERVICAMPUS</p>
+        <NavbarBrand className="mr-4 gap-2 sm:mr-8 sm:gap-3">
+          <span
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+            style={{ backgroundColor: 'var(--color-light)' }}
+          >
+            <img src={logo} alt="" className="h-8 w-8 object-contain" />
+          </span>
+          <span className="flex flex-col leading-none">
+            <span className="whitespace-nowrap text-lg font-black tracking-tight" style={{ color: 'var(--color-primary)' }}>
+              TalentU
+            </span>
+            <span className="mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 sm:block">
+              Comunidad universitaria
+            </span>
+          </span>
         </NavbarBrand>
+
+        <NavbarContent className="hidden gap-1 sm:flex">
+          <NavbarItem>
+            <Link
+              className={`cursor-pointer rounded-xl px-3 py-2 font-semibold transition-colors hover:bg-blue-50 hover:text-blue-700 ${location.pathname === '/home' ? 'bg-blue-50 text-blue-700' : 'text-slate-600'}`}
+              onClick={() => handleNavigate('/home')}
+            >
+              <HomeIcon className="mr-1 inline h-4 w-4" />
+              Inicio
+            </Link>
+          </NavbarItem>
+          <NavbarItem>
+            <Dropdown>
+              <DropdownTrigger>
+                <button className="flex items-center rounded-xl px-3 py-2 font-semibold text-slate-600 transition-colors hover:bg-blue-50 hover:text-blue-700">
+                  Categorías <ChevronDown className="ml-1 h-4 w-4" />
+                </button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Categorías de servicios">
+                <DropdownItem key="all" onPress={() => handleNavigate('/home#catalogo')}>
+                  Todas las categorías
+                </DropdownItem>
+                {SERVICE_CATEGORIES.map((category) => (
+                  <DropdownItem key={category} onPress={() => navigateToCategory(category)}>
+                    {category}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
+          </NavbarItem>
+        </NavbarContent>
+
+        <NavbarContent className="flex sm:hidden">
+          <Dropdown>
+            <DropdownTrigger>
+              <button className="flex items-center rounded-xl bg-blue-50 px-3 py-2 font-semibold text-blue-700">
+                Explorar <ChevronDown className="ml-1 h-4 w-4" />
+              </button>
+            </DropdownTrigger>
+            <DropdownMenu aria-label="Explorar TalentU">
+              <DropdownItem key="home" onPress={() => handleNavigate('/home')}>
+                Inicio
+              </DropdownItem>
+              <DropdownItem key="all-mobile" onPress={() => handleNavigate('/home#catalogo')}>
+                Todas las categorías
+              </DropdownItem>
+              {SERVICE_CATEGORIES.map((category) => (
+                <DropdownItem key={`${category}-mobile`} onPress={() => navigateToCategory(category)}>
+                  {category}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </Dropdown>
+        </NavbarContent>
 
         {/* 🔹 Si NO es invitado, mostrar el resto del menú */}
         {!isGuest && (
-          <NavbarContent className="hidden sm:flex gap-3">
+          <NavbarContent className="hidden gap-1 sm:flex">
             <NavbarItem>
               <Link
-                className="font-semibold text-white cursor-pointer"
+                className={`cursor-pointer rounded-xl px-3 py-2 font-semibold transition-colors hover:bg-blue-50 hover:text-blue-700 ${location.pathname === '/chat' ? 'bg-blue-50 text-blue-700' : 'text-slate-600'}`}
+                onClick={() => handleNavigate('/chat')}
+              >
+                <MessageCircle className="mr-1 inline h-4 w-4" />
+                Mensajes
+                {unreadMessages > 0 && (
+                  <span className="ml-1 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    {unreadMessages > 99 ? '99+' : unreadMessages}
+                  </span>
+                )}
+              </Link>
+            </NavbarItem>
+            <NavbarItem>
+              <Link
+                className={`cursor-pointer rounded-xl px-3 py-2 font-semibold transition-colors hover:bg-blue-50 hover:text-blue-700 ${location.pathname === '/profile' ? 'bg-blue-50 text-blue-700' : 'text-slate-600'}`}
                 onClick={() => handleNavigate('/profile')}
               >
                 Perfil
@@ -82,7 +207,7 @@ const NavBar = () => {
             </NavbarItem>
             <NavbarItem>
               <Link
-                className="font-semibold text-white cursor-pointer"
+                className={`cursor-pointer rounded-xl px-3 py-2 font-semibold transition-colors hover:bg-blue-50 hover:text-blue-700 ${location.pathname === '/notices' ? 'bg-blue-50 text-blue-700' : 'text-slate-600'}`}
                 onClick={() => handleNavigate('/notices')}
               >
                 Noticias
@@ -90,7 +215,7 @@ const NavBar = () => {
             </NavbarItem>
             <NavbarItem>
               <Link
-                className="font-semibold text-white cursor-pointer"
+                className={`cursor-pointer rounded-xl px-3 py-2 font-semibold transition-colors hover:bg-blue-50 hover:text-blue-700 ${location.pathname === '/opciones' ? 'bg-blue-50 text-blue-700' : 'text-slate-600'}`}
                 onClick={() => handleNavigate('/opciones')}
               >
                 Opciones
@@ -100,20 +225,23 @@ const NavBar = () => {
         )}
 
         {/* 🔹 Ayuda siempre visible */}
-        <NavbarContent className="hidden sm:flex gap-3">
+        <NavbarContent className="hidden gap-1 sm:flex">
           <NavbarItem>
             <Link
-              className="font-semibold text-white cursor-pointer"
+              className="cursor-pointer rounded-xl px-3 py-2 font-semibold text-slate-600 transition-colors hover:bg-blue-50 hover:text-blue-700"
               onClick={() => handleNavigate('/chatbot')}
             >
-              Ayuda <FaHeadset className="text-white inline ml-1" />
+              Ayuda <FaHeadset className="inline ml-1 text-blue-700" />
             </Link>
           </NavbarItem>
 
           {/* Theme Switcher */}
           <Dropdown>
             <DropdownTrigger>
-              <button className="text-white hover:text-blue-100 transition">
+              <button
+                className="rounded-xl p-2 text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                aria-label="Cambiar tema"
+              >
                 <MdPalette size={24} />
               </button>
             </DropdownTrigger>
@@ -146,7 +274,7 @@ const NavBar = () => {
               <Avatar
                 isBordered
                 as="button"
-                className="transition-transform"
+                className="transition-transform hover:scale-105"
                 color="primary"
                 name={userData ? userData.name : "Usuario"}
                 size="sm"
@@ -164,6 +292,9 @@ const NavBar = () => {
               </DropdownItem>
               <DropdownItem key="mi-perfil" onPress={() => handleNavigate('/profile')}>
                 Mi perfil
+              </DropdownItem>
+              <DropdownItem key="mensajes" onPress={() => handleNavigate('/chat')}>
+                Mensajes{unreadMessages > 0 ? ` (${unreadMessages} sin leer)` : ''}
               </DropdownItem>
               <DropdownItem key="noticias" onPress={() => handleNavigate('/notices')}>
                 Noticias

@@ -87,7 +87,7 @@ const Login = () => {
   const handleGuestLogin = () => {
     Swal.fire({
       title: 'Ingresando como invitado',
-      text: 'Podrás ver productos pero no realizar acciones',
+      text: 'Podrás explorar los servicios publicados por la comunidad',
       icon: 'info',
       confirmButtonColor: '#28a745'
     }).then(() => {
@@ -114,7 +114,7 @@ const Login = () => {
           />
           <br /><br /><br /><br />
           <h1 className="text-4xl font-extrabold mb-4 text-white text-login-left animate-duration-[2000ms] animate-delay-[2000ms]">
-            Bienvenidos a la pagina oficial de SERVICAMPUS
+            Bienvenidos a TalentU
           </h1>
             <p className="text-xl mb-4 font-semibold text-login-left animate-duration-[2000ms] animate-delay-[2000ms]" style={{ color: 'var(--color-secondary)' }}>
             Olvídate de las limitaciones para ofertar tus servicios en la universidad 👌
@@ -134,7 +134,7 @@ const Login = () => {
           {/* Título solo en móviles */}
             <h1 className="text-3xl font-extrabold mb-6 text-center block md:hidden form-login" style={{ color: 'var(--color-primary)' }}>
             Bienvenidos
-            <p>SERVICAMPUS</p>
+            <p>TalentU</p>
           </h1>
 
           <form onSubmit={onSubmit} className="form-login">

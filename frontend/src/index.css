@@ -226,13 +226,8 @@ html[data-theme="green"] .why-text {
 
 /*Estilos del hpme en tailwind que se pueden reciclar*/
 
-.animated-down{
-  @apply animate-fade-down animate-duration-[2000ms] animate-delay-[2000ms]
-
-}
-
 .buttons-profile{
-  @apply px-6 py-3 rounded-2xl border transition mx-6 flex items-center cell:text-sm md:text-lg lg:text-xl duration-2000 shadow-xl animate-flip-down animate-duration-[2000ms] animate-delay-[2000ms];
+  @apply px-6 py-3 rounded-2xl border transition flex items-center cell:text-sm md:text-lg lg:text-xl duration-200 shadow-sm;
   font-weight: 600;
 }
 

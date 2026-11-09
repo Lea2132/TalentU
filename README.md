@@ -18,3 +18,4 @@ Este proyecto es una plataforma de e-commerce que permite a los usuarios crear u
 - **Backend**: npm run db ( Para visualizar los datos que contienen las tablas de la base de datos desde la terminal)
    
    
+

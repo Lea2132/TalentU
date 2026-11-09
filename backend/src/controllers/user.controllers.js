@@ -5,6 +5,12 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const serviceCategories = [
+  "Clases y tutorías",
+  "Belleza y cuidado personal",
+  "Otros servicios",
+];
+
 // ======================== CREAR USUARIO ADMIN POR DEFECTO ========================
 export const createDefaultAdmin = async () => {
   try {
@@ -80,10 +86,14 @@ export const login = async (req, res) => {
   }
 };
 
-// ======================== PRODUCTOS ========================
+// ======================== SERVICIOS ========================
 export const createProducts = async (req, res) => {
   const { title, description, price, category } = req.body;
   const image_url = req.file ? req.file.path : null;
+
+  if (!serviceCategories.includes(category)) {
+    return res.status(400).json({ message: "Selecciona una categoría de servicio válida" });
+  }
 
   try {
     const userId = req.userId || null;
@@ -109,6 +119,10 @@ export const editProduct = async (req, res) => {
   const { id } = req.params;
   const { title, description, price, category } = req.body;
 
+  if (!serviceCategories.includes(category)) {
+    return res.status(400).json({ message: "Selecciona una categoría de servicio válida" });
+  }
+
   try {
     const product = await UserModel.editProduct(id, title, description, price, category);
     return res.status(200).json(product);
@@ -122,7 +136,7 @@ export const deleteProduct = async (req, res) => {
 
   try {
     const product = await UserModel.deleteProduct(id);
-    return res.status(200).json({ message: "Producto eliminado", product });
+    return res.status(200).json({ message: "Servicio eliminado", product });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -130,11 +144,117 @@ export const deleteProduct = async (req, res) => {
 
 export const getProducts = async (req, res) => {
   try {
-    const products = await UserModel.getAllProducts();
+    const products = await UserModel.getAllProducts(req.userId || null);
     return res.status(200).json(products);
   } catch (error) {
-    console.error("Error al obtener productos:", error);
-    return res.status(500).json({ message: "Error al obtener productos" });
+    console.error("Error al obtener servicios:", error);
+    return res.status(500).json({ message: "Error al obtener servicios" });
+  }
+};
+
+const isValidId = (id) => Number.isInteger(Number(id)) && Number(id) > 0;
+
+export const getProductComments = async (req, res) => {
+  const { productId } = req.params;
+  if (!isValidId(productId)) {
+    return res.status(400).json({ message: "Servicio inválido" });
+  }
+
+  try {
+    const comments = await UserModel.getProductComments(productId);
+    return res.status(200).json(comments);
+  } catch (error) {
+    console.error("Error al obtener comentarios:", error);
+    return res.status(500).json({ message: "Error al obtener comentarios" });
+  }
+};
+
+export const createComment = async (req, res) => {
+  const { productId } = req.params;
+  const submittedText = req.body.text ?? req.body.content;
+  const text = typeof submittedText === "string" ? submittedText.trim() : "";
+  if (!isValidId(productId) || !text) {
+    return res.status(400).json({ message: "El comentario y el servicio son obligatorios" });
+  }
+  if (text.length > 1000) {
+    return res.status(400).json({ message: "El comentario no puede superar 1000 caracteres" });
+  }
+
+  try {
+    if (!(await UserModel.productExists(productId))) {
+      return res.status(404).json({ message: "Servicio no encontrado" });
+    }
+    const comment = await UserModel.createComment(productId, req.userId, text);
+    return res.status(201).json(comment);
+  } catch (error) {
+    console.error("Error al crear comentario:", error);
+    return res.status(500).json({ message: "Error al crear comentario" });
+  }
+};
+
+export const setProductLike = async (req, res) => {
+  const { productId } = req.params;
+  const { liked } = req.body;
+  if (!isValidId(productId) || typeof liked !== "boolean") {
+    return res.status(400).json({ message: "Servicio o estado de like inválido" });
+  }
+
+  try {
+    if (!(await UserModel.productExists(productId))) {
+      return res.status(404).json({ message: "Servicio no encontrado" });
+    }
+    const likesCount = await UserModel.setProductLike(productId, req.userId, liked);
+    return res.status(200).json({ liked, likes_count: likesCount });
+  } catch (error) {
+    console.error("Error al actualizar like:", error);
+    return res.status(500).json({ message: "Error al actualizar el like" });
+  }
+};
+
+export const setProductRating = async (req, res) => {
+  const { productId } = req.params;
+  const rating = Number(req.body.rating);
+  if (!isValidId(productId) || !Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return res.status(400).json({ message: "La calificación debe ser de 1 a 5 estrellas" });
+  }
+
+  try {
+    if (!(await UserModel.productExists(productId))) {
+      return res.status(404).json({ message: "Servicio no encontrado" });
+    }
+    const ratingSummary = await UserModel.setProductRating(productId, req.userId, rating);
+    return res.status(200).json({ rating, ...ratingSummary });
+  } catch (error) {
+    console.error("Error al guardar calificación:", error);
+    return res.status(500).json({ message: "Error al guardar la calificación" });
+  }
+};
+
+export const getAllComments = async (req, res) => {
+  try {
+    const comments = await UserModel.getAllComments();
+    return res.status(200).json(comments);
+  } catch (error) {
+    console.error("Error al obtener comentarios para administración:", error);
+    return res.status(500).json({ message: "Error al obtener comentarios" });
+  }
+};
+
+export const deleteComment = async (req, res) => {
+  const { id } = req.params;
+  if (!isValidId(id)) {
+    return res.status(400).json({ message: "Comentario inválido" });
+  }
+
+  try {
+    const comment = await UserModel.deleteComment(id);
+    if (!comment) {
+      return res.status(404).json({ message: "Comentario no encontrado" });
+    }
+    return res.status(200).json({ message: "Comentario eliminado" });
+  } catch (error) {
+    console.error("Error al eliminar comentario:", error);
+    return res.status(500).json({ message: "Error al eliminar comentario" });
   }
 };
 
@@ -158,8 +278,8 @@ export const getUserProducts = async (req, res) => {
     const products = await UserModel.getUserProducts(userId);
     return res.status(200).json(products);
   } catch (error) {
-    console.error("Error al obtener productos del usuario:", error);
-    return res.status(500).json({ message: "Error al obtener productos del usuario" });
+    console.error("Error al obtener servicios del usuario:", error);
+    return res.status(500).json({ message: "Error al obtener servicios del usuario" });
   }
 };
 
@@ -184,6 +304,83 @@ export const deleteUser = async (req, res) => {
 };
 
 // ======================== CHATS ========================
+const validateChatText = (value) => {
+  if (typeof value !== "string") return null;
+  const text = value.trim();
+  return text && text.length <= 2000 ? text : null;
+};
+
+export const getConversations = async (req, res) => {
+  try {
+    const conversations = await UserModel.getConversations(req.userId);
+    return res.status(200).json(conversations);
+  } catch (error) {
+    console.error("Error al obtener conversaciones:", error);
+    return res.status(500).json({ message: "No se pudieron cargar las conversaciones" });
+  }
+};
+
+export const startConversation = async (req, res) => {
+  const productId = Number(req.body.product_id);
+  const text = validateChatText(req.body.text);
+  if (!Number.isInteger(productId) || productId <= 0) {
+    return res.status(400).json({ message: "La publicación no es válida" });
+  }
+  if (!text) {
+    return res.status(400).json({ message: "Escribe un mensaje de hasta 2000 caracteres" });
+  }
+
+  try {
+    const result = await UserModel.startConversation(productId, req.userId, text);
+    if (result.error === "product_not_found") {
+      return res.status(404).json({ message: "La publicación ya no está disponible" });
+    }
+    if (result.error === "self_contact") {
+      return res.status(403).json({ message: "No puedes iniciar una conversación contigo mismo" });
+    }
+    return res.status(201).json(result);
+  } catch (error) {
+    console.error("Error al iniciar conversación:", error);
+    return res.status(500).json({ message: "No se pudo enviar el mensaje" });
+  }
+};
+
+export const getConversationMessages = async (req, res) => {
+  const conversationId = Number(req.params.conversationId);
+  if (!Number.isInteger(conversationId) || conversationId <= 0) {
+    return res.status(400).json({ message: "La conversación no es válida" });
+  }
+
+  try {
+    const messages = await UserModel.getConversationMessages(conversationId, req.userId);
+    if (!messages) return res.status(404).json({ message: "Conversación no encontrada" });
+    return res.status(200).json(messages);
+  } catch (error) {
+    console.error("Error al cargar mensajes:", error);
+    return res.status(500).json({ message: "No se pudieron cargar los mensajes" });
+  }
+};
+
+export const sendConversationMessage = async (req, res) => {
+  const conversationId = Number(req.params.conversationId);
+  const text = validateChatText(req.body.text);
+  if (!Number.isInteger(conversationId) || conversationId <= 0) {
+    return res.status(400).json({ message: "La conversación no es válida" });
+  }
+  if (!text) {
+    return res.status(400).json({ message: "Escribe un mensaje de hasta 2000 caracteres" });
+  }
+
+  try {
+    const message = await UserModel.sendConversationMessage(conversationId, req.userId, text);
+    if (!message) return res.status(404).json({ message: "Conversación no encontrada" });
+    return res.status(201).json(message);
+  } catch (error) {
+    console.error("Error al enviar mensaje:", error);
+    return res.status(500).json({ message: "No se pudo enviar el mensaje" });
+  }
+};
+
 export const chat = async (req, res) => {
   const { text, sender, user_id } = req.body;
 

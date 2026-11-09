@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import Modal from "./Modal"; 
 import { useForm } from "react-hook-form";
 import axios from "axios";
+import { SERVICE_CATEGORIES } from "../../constants/serviceCategories";
 
 const EditProductForm = ({ editingProduct, handleUpdate, setEditingProduct }) => {
   const { register, handleSubmit, setValue } = useForm();
@@ -38,17 +39,17 @@ const EditProductForm = ({ editingProduct, handleUpdate, setEditingProduct }) =>
       handleUpdate(response.data);
       setEditingProduct(null); 
     } catch (error) {
-      console.error("Error al actualizar el producto:", error);
+      console.error("Error al actualizar el servicio:", error);
     }
   };
 
   return (
     <div>
       {editingProduct && (
-        <Modal isOpen={true} onClose={() => setEditingProduct(null)} title="Editar Producto">
+        <Modal isOpen={true} onClose={() => setEditingProduct(null)} title="Editar servicio">
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-4">
-              <label htmlFor="title" className="block text-blue-700">Titulo</label>
+              <label htmlFor="title" className="block text-blue-700">Nombre del servicio</label>
               <input
                 id="title"
                 type="text"
@@ -57,7 +58,7 @@ const EditProductForm = ({ editingProduct, handleUpdate, setEditingProduct }) =>
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="description" className="block text-blue-700">Descripcion</label>
+              <label htmlFor="description" className="block text-blue-700">Descripción del servicio</label>
               <textarea
                 id="description"
                 className="border border-blue-400 p-2 w-full rounded"
@@ -65,24 +66,27 @@ const EditProductForm = ({ editingProduct, handleUpdate, setEditingProduct }) =>
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="price" className="block text-blue-700">Precio</label>
+              <label htmlFor="price" className="block text-blue-700">Tarifa de referencia (COP)</label>
               <input
                 id="price"
                 type="number"
+                min="0"
                 className="border border-blue-400 p-2 w-full rounded"
-                {...register("price", { required: true })}
+                {...register("price", { required: true, min: 0 })}
               />
+              <p className="mt-1 text-sm text-slate-500">Indica en la descripción si cobras por hora, sesión u otra modalidad.</p>
             </div>
             <div className="mb-4">
-              <label htmlFor="category" className="block text-blue-700">Categoria</label>
+              <label htmlFor="category" className="block text-blue-700">Tipo de servicio</label>
               <select
                 id="category"
                 className="border border-blue-400 p-2 w-full rounded"
                 {...register("category", { required: true })}
               >
-                <option value="Producto">Producto</option>
-                <option value="Comida">Comida</option>
-                <option value="Servicio">Servicio</option>
+                <option value="">Selecciona el tipo de servicio</option>
+                {SERVICE_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
               </select>
             </div>
            
@@ -90,7 +94,7 @@ const EditProductForm = ({ editingProduct, handleUpdate, setEditingProduct }) =>
               type="submit"
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
             >
-              Actualizar Producto
+              Guardar cambios
             </button>
           </form>
         </Modal>

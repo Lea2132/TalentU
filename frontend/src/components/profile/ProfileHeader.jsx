@@ -1,16 +1,15 @@
-import { User, MessageCircle } from 'lucide-react'
+import { MessageCircle, ArrowLeft } from 'lucide-react'
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from 'react'
-import { useContext } from 'react'
-import { ThemeContext } from '../../context/ThemeContext'
 import axios from 'axios'
 
 const ProfileHeader = () => {
   const redirect = useNavigate();
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const [userData, setUserData] = useState(() => {
     try {
       return typeof window !== 'undefined' && localStorage.getItem('userData') ? JSON.parse(localStorage.getItem('userData')) : null;
-    } catch (e) { return null }
+    } catch { return null }
   });
 
   useEffect(() => {
@@ -27,34 +26,98 @@ const ProfileHeader = () => {
       }
     };
     fetchMe();
+  }, [userData]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || localStorage.getItem('guest') === 'true') {
+      setUnreadMessages(0);
+      return undefined;
+    }
+
+    let active = true;
+    const fetchUnreadMessages = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/conversations', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (active) {
+          setUnreadMessages(
+            response.data.reduce((total, conversation) => total + Number(conversation.unread_count || 0), 0)
+          );
+        }
+      } catch (error) {
+        console.error('No se pudieron consultar mensajes sin leer:', error);
+      }
+    };
+
+    fetchUnreadMessages();
+    const intervalId = window.setInterval(fetchUnreadMessages, 15000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
   }, []);
 
-  const handleNavigate = (path) => {
-    redirect(path);
-  };
+  const initials = userData?.name
+    ?.split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('') || 'U';
 
   return (
-    <div className="shadow-lg rounded-lg p-4 flex items-center justify-between mb-8 max-w-[95%] mx-auto animate-fade-down animate-duration-[1000ms] animate-delay-[1000ms]" style={{ backgroundColor: 'var(--color-primary)' }}>
-      {/* Lado izquierdo de la seccion imagen de perfil y informacion del usuario */}
-      <div className="flex items-center space-x-6">
-        <div className="rounded-full p-4 shadow-md" style={{ backgroundColor: 'var(--color-light)' }}>
-          <User className="w-12 h-12" style={{ color: 'var(--color-primary)' }} />
+    <header
+      className="relative overflow-hidden rounded-3xl p-5 text-white shadow-lg sm:p-7"
+      style={{ background: 'linear-gradient(120deg, var(--color-secondary), var(--color-primary))' }}
+    >
+      <div className="absolute -right-12 -top-20 h-56 w-56 rounded-full bg-white/10" aria-hidden="true" />
+      <div className="relative flex flex-wrap items-center justify-between gap-5">
+        <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+          <div
+            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-white/30 bg-white/15 text-xl font-black shadow-inner sm:h-20 sm:w-20 sm:text-2xl"
+            aria-label={`Iniciales de ${userData?.name || 'Usuario'}`}
+          >
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-white/75">Mi perfil</p>
+            <h2 className="mt-1 truncate text-2xl font-black leading-tight sm:text-3xl">
+              {userData ? userData.name : 'Usuario'}
+            </h2>
+            <p className="mt-1 truncate text-sm font-medium text-white/85 sm:text-base">
+              {userData ? userData.email : 'Gestiona tu actividad en TalentU'}
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-3xl font-bold text-white leading-tight">{userData ? userData.name : 'Usuario'}</h2>
-          <p className="text-md text-white font-semibold">{userData ? userData.email : ''}</p>
+
+        <div className="flex w-full gap-2 sm:w-auto">
+          <button
+            type="button"
+            onClick={() => redirect('/home')}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/20 sm:flex-none"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Volver a inicio</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => redirect('/chat')}
+            aria-label={unreadMessages ? `Abrir mensajes, ${unreadMessages} sin leer` : 'Abrir mensajes'}
+            className="relative inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold transition hover:bg-white/90"
+            style={{ color: 'var(--color-primary)' }}
+          >
+            <MessageCircle className="h-5 w-5" />
+            <span className="hidden sm:inline">Mensajes</span>
+            {unreadMessages > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white">
+                {unreadMessages > 99 ? '99+' : unreadMessages}
+              </span>
+            )}
+          </button>
         </div>
       </div>
-
-      {/* Lado derecho icono de mensajes */}
-      <a
-        onClick={()=>handleNavigate("/chat")}
-        className="transition duration-300 ease-in-out flex items-center space-x-2 p-3 rounded-full shadow-md hover:shadow-lg cursor-pointer text-white hover:opacity-80" 
-        style={{ backgroundColor: 'var(--color-light)' }}
-      >
-        <MessageCircle className="w-8 h-8" style={{ color: 'var(--color-primary)' }} />
-      </a>
-    </div>
+    </header>
   )
 }
 

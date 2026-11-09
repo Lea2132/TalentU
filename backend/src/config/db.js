@@ -38,6 +38,70 @@ const createProductsTable = `
   );
 `;
 
+const createCommentsTable = `
+  CREATE TABLE IF NOT EXISTS comments (
+    id SERIAL PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`;
+
+const createProductLikesTable = `
+  CREATE TABLE IF NOT EXISTS product_likes (
+    id SERIAL PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (product_id, user_id)
+  );
+`;
+
+const createProductRatingsTable = `
+  CREATE TABLE IF NOT EXISTS product_ratings (
+    id SERIAL PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (product_id, user_id)
+  );
+`;
+
+const createChatConversationsTable = `
+  CREATE TABLE IF NOT EXISTS chat_conversations (
+    id SERIAL PRIMARY KEY,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    buyer_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    seller_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (product_id, buyer_id),
+    CHECK (buyer_id <> seller_id)
+  );
+`;
+
+const createChatMessagesTable = `
+  CREATE TABLE IF NOT EXISTS chat_messages (
+    id SERIAL PRIMARY KEY,
+    conversation_id INTEGER NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+    sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    read_at TIMESTAMP
+  );
+`;
+
+const createChatMessageIndexes = `
+  CREATE INDEX IF NOT EXISTS chat_messages_conversation_created_idx
+    ON chat_messages (conversation_id, created_at, id);
+  CREATE INDEX IF NOT EXISTS chat_messages_unread_idx
+    ON chat_messages (conversation_id, sender_id)
+    WHERE read_at IS NULL;
+`;
+
 //Tabla de chats
 const createChatTable = `
   CREATE TABLE IF NOT EXISTS chats (
@@ -67,6 +131,16 @@ const createTables = async () => {
     console.log('Tabla "users" creada exitosamente');
     await pool.query(createProductsTable);
     console.log('Tabla "products" creada exitosamente');
+    await pool.query(createCommentsTable);
+    console.log('Tabla "comments" verificada/creada');
+    await pool.query(createProductLikesTable);
+    console.log('Tabla "product_likes" verificada/creada');
+    await pool.query(createProductRatingsTable);
+    console.log('Tabla "product_ratings" verificada/creada');
+    await pool.query(createChatConversationsTable);
+    await pool.query(createChatMessagesTable);
+    await pool.query(createChatMessageIndexes);
+    console.log('Tablas de conversaciones y mensajes verificadas/creadas');
     await pool.query(createChatTable);
     console.log('Tabla "chats" creada exitosamente');
     await pool.query(createChatTableBot);
