@@ -108,7 +108,7 @@ const Login = () => {
       <div className="hidden md:flex flex-1 rounded-lg items-center justify-center p-10 animate-jump animate-once animate-duration-[3000ms] animate-delay-[2000ms]" style={{ backgroundImage: `linear-gradient(135deg, ${theme === 'green' ? '#10b981' : '#1e3a8a'} 0%, ${theme === 'green' ? '#d1fae5' : '#87ceeb'} 100%)` }}>
         <div className="text-center">
           <img
-            src="../../public/img/fondov2.png"
+            src="/img/fondov2.png"
             alt="Logo"
             style={{ width: '700px', height: 'auto' }}
           />
