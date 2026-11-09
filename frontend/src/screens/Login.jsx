@@ -12,6 +12,7 @@ import {
   DropdownMenu,
   DropdownItem,
 } from "@nextui-org/react";
+import { API_URL } from "../config/api";
 
 const Login = () => {
   const redirect = useNavigate();
@@ -29,7 +30,7 @@ const Login = () => {
   // 🔹 Función de inicio de sesión normal
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const res = await axios.post("http://localhost:3000/api/login", data);
+      const res = await axios.post(`${API_URL}/login`, data);
       reset();
 
       // ✅ Si inicia sesión normal, eliminamos el modo invitado

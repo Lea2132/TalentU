@@ -2,6 +2,7 @@ import { MessageCircle, ArrowLeft } from 'lucide-react'
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import { API_URL } from '../../config/api'
 
 const ProfileHeader = () => {
   const redirect = useNavigate();
@@ -17,7 +18,7 @@ const ProfileHeader = () => {
       const token = localStorage.getItem('token');
       if (!userData && token) {
         try {
-          const res = await axios.get('http://localhost:3000/api/me', { headers: { Authorization: `Bearer ${token}` } });
+          const res = await axios.get(`${API_URL}/me`, { headers: { Authorization: `Bearer ${token}` } });
           setUserData(res.data.user);
           localStorage.setItem('userData', JSON.stringify(res.data.user));
         } catch (err) {
@@ -38,7 +39,7 @@ const ProfileHeader = () => {
     let active = true;
     const fetchUnreadMessages = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/conversations', {
+        const response = await axios.get(`${API_URL}/conversations`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (active) {

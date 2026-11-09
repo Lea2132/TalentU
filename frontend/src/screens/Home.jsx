@@ -16,8 +16,8 @@ import axios from 'axios';
 import NavBar from '../components/NavBar.jsx';
 import ItemCard from '../components/home/ItemCard';
 import { SERVICE_CATEGORIES } from '../constants/serviceCategories';
+import { API_URL, apiAssetUrl } from '../config/api';
 
-const API_URL = 'http://localhost:3000/api';
 const CATEGORIES = ['Todos', ...SERVICE_CATEGORIES];
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Más recientes' },
@@ -85,7 +85,7 @@ const Home = () => {
             userLiked: product.user_liked === true,
             seller_name: product.seller_name,
             image: product.image_url
-              ? `http://localhost:3000/${product.image_url.replace(/\\/g, '/')}`
+              ? apiAssetUrl(product.image_url)
               : '/imghome/mekato.png',
             user_id: product.user_id,
             createdAt: product.created_at,

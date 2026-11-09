@@ -10,6 +10,7 @@ import {
   MdOutlineEmail,
 } from "react-icons/md";
 import { useState } from "react";
+import { API_URL } from "../config/api";
 
 const Register = () => {
   const redirect = useNavigate();
@@ -24,7 +25,7 @@ const Register = () => {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const res = await axios.post("http://localhost:3000/api/register", data);
+      const res = await axios.post(`${API_URL}/register`, data);
       console.log(res.data);
       reset();
       Swal.fire({

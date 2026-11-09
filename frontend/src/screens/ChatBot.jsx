@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Send } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../config/api';
 
 const ChatBot = () => {
   const [messages, setMessages] = useState([
@@ -52,7 +53,7 @@ const ChatBot = () => {
     setShowOptions(false);
 
     try {
-      const response = await axios.post("http://localhost:3000/api/chatbot", { 
+      const response = await axios.post(`${API_URL}/chatbot`, {
         text, 
         sender: 'yo', 
         user_id: userData.id 

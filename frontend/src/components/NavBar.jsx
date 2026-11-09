@@ -19,6 +19,7 @@ import { useEffect, useState, useContext } from "react";
 import Swal from "sweetalert2";
 import { ThemeContext } from "../context/ThemeContext";
 import { SERVICE_CATEGORIES } from "../constants/serviceCategories";
+import { API_URL } from "../config/api";
 
 const NavBar = () => {
   const redirect = useNavigate();
@@ -49,7 +50,7 @@ const NavBar = () => {
     let active = true;
     const fetchUnreadMessages = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/conversations', {
+        const response = await fetch(`${API_URL}/conversations`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!response.ok) throw new Error(`No se pudieron consultar mensajes (${response.status})`);

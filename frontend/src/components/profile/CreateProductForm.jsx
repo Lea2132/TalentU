@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { SERVICE_CATEGORIES } from "../../constants/serviceCategories";
+import { API_URL } from "../../config/api";
 
 const CreateProductForm = ({ handleCreateProduct }) => {
   const { register, handleSubmit,reset, formState: { errors } } = useForm();
@@ -23,7 +24,7 @@ const CreateProductForm = ({ handleCreateProduct }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post("http://localhost:3000/api/products", formData, {
+      const response = await axios.post(`${API_URL}/products`, formData, {
         headers: { "Content-Type": "multipart/form-data", ...(token ? { Authorization: `Bearer ${token}` } : {}) }
       });
       handleCreateProduct(response.data);

@@ -4,6 +4,7 @@ import Modal from "./Modal";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { SERVICE_CATEGORIES } from "../../constants/serviceCategories";
+import { API_URL } from "../../config/api";
 
 const EditProductForm = ({ editingProduct, handleUpdate, setEditingProduct }) => {
   const { register, handleSubmit, setValue } = useForm();
@@ -30,7 +31,7 @@ const EditProductForm = ({ editingProduct, handleUpdate, setEditingProduct }) =>
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`http://localhost:3000/api/products/${editingProduct.id}`, formData, {
+      const response = await axios.put(`${API_URL}/products/${editingProduct.id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           ...(token ? { Authorization: `Bearer ${token}` } : {})

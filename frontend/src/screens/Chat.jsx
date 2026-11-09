@@ -10,8 +10,8 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import NavBar from '../components/NavBar';
+import { API_URL, apiAssetUrl } from '../config/api';
 
-const API_URL = 'http://localhost:3000/api';
 const POLL_INTERVAL = 5000;
 
 const formatTime = (date) => {
@@ -372,7 +372,7 @@ const Chat = () => {
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-blue-700">
                     {activeProduct.image_url ? (
                       <img
-                        src={activeProduct.image_url.startsWith('http') ? activeProduct.image_url : `http://localhost:3000/${activeProduct.image_url.replace(/\\/g, '/')}`}
+                        src={apiAssetUrl(activeProduct.image_url)}
                         alt=""
                         className="h-full w-full object-cover"
                       />

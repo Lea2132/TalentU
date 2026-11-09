@@ -4,8 +4,7 @@ import { Heart, MessageCircle, Send, Star } from 'lucide-react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
-
-const API_URL = 'http://localhost:3000/api';
+import { API_URL } from '../../config/api';
 
 const ItemCard = ({ item, isGuest }) => {
   const navigate = useNavigate();

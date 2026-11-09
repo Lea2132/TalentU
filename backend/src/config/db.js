@@ -4,11 +4,15 @@ import pg from "pg";
 dotenv.config();
 
 export const pool = new pg.Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  ...(process.env.DATABASE_URL
+    ? { connectionString: process.env.DATABASE_URL }
+    : {
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT) || 5432,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+      }),
 });
 
 // Tabla de userss
@@ -151,6 +155,7 @@ const createTables = async () => {
       console.log('Columna "is_admin" en users verificada/creada');
     } catch (err) {
       console.error('No se pudo asegurar columna is_admin en users:', err.message);
+      throw err;
     }
 
     try {
@@ -158,11 +163,12 @@ const createTables = async () => {
       console.log('Columna "is_published" en products verificada/creada');
     } catch (err) {
       console.error('No se pudo asegurar columna is_published en products:', err.message);
+      throw err;
     }
   } catch (error) {
     console.error('Error al crear las tablas:', error);
+    throw error;
   }
 };
 
-// Llamada a la funcion para crear las tablas
-createTables();
+export const databaseReady = createTables();

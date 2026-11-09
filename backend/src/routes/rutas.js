@@ -1,5 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
+import { cloudinaryConfigured } from "../services/cloudinary.js";
 import {
   login,
   register,
@@ -27,16 +28,21 @@ import {
 } from "../controllers/user.controllers.js";
 import { verifyToken, optionalVerifyToken, requireAdmin } from "../middlewares/authMiddleware.js";
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
+const storage = cloudinaryConfigured
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, "uploads/");
+    },
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + "-" + file.originalname);
+    },
+  });
 
 const upload = multer({ storage });
+if (!cloudinaryConfigured && process.env.NODE_ENV === "production") {
+  console.warn("Cloudinary no está configurado; los archivos subidos en Render no serán persistentes.");
+}
 const router = Router();
 
 // Usuarios

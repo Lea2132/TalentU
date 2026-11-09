@@ -7,6 +7,7 @@ import ProfileHeader from "../components/profile/ProfileHeader";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { SERVICE_CATEGORIES } from "../constants/serviceCategories";
+import { API_URL } from "../config/api";
 
 const Profile = () => {
   const [products, setProducts] = useState([]);
@@ -25,7 +26,7 @@ const Profile = () => {
       
       if (userData && userData.id) {
         const response = await axios.get(
-          `http://localhost:3000/api/products/user/${userData.id}`,
+          `${API_URL}/products/user/${userData.id}`,
           { headers: token ? { Authorization: `Bearer ${token}` } : {} }
         );
         setProducts(response.data);
@@ -90,7 +91,7 @@ const Profile = () => {
     if (response.isConfirmed) {
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`http://localhost:3000/api/products/${id}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        await axios.delete(`${API_URL}/products/${id}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
         const updatedProducts = products.filter((product) => product.id !== id);
         setProducts(updatedProducts);
         Swal.fire({
@@ -129,7 +130,7 @@ const Profile = () => {
 
   const handleUpdate = async (updatedProduct) => {
     try {
-      await axios.put(`http://localhost:3000/api/products/${updatedProduct.id}`, updatedProduct);
+      await axios.put(`${API_URL}/products/${updatedProduct.id}`, updatedProduct);
       const updatedProducts = products.map((product) =>
         product.id === updatedProduct.id ? updatedProduct : product
       );

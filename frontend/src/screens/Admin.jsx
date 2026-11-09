@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { API_URL } from "../config/api";
 
 function Admin() {
   const navigate = useNavigate();
@@ -13,8 +14,8 @@ function Admin() {
     try {
       const token = localStorage.getItem("token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const resUsers = await axios.get("http://localhost:3000/api/users", { headers });
-      const resProducts = await axios.get("http://localhost:3000/api/allproducts");
+      const resUsers = await axios.get(`${API_URL}/users`, { headers });
+      const resProducts = await axios.get(`${API_URL}/allproducts`);
       setUsers(resUsers.data);
       setProducts(resProducts.data);
     } catch (error) {
@@ -23,7 +24,7 @@ function Admin() {
 
     try {
       const token = localStorage.getItem("token");
-      const resComments = await axios.get("http://localhost:3000/api/admin/comments", {
+      const resComments = await axios.get(`${API_URL}/admin/comments`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       setComments(resComments.data);
@@ -54,7 +55,7 @@ function Admin() {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:3000/api/users/${id}`, {
+      await axios.delete(`${API_URL}/users/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       Swal.fire("Eliminado", "Usuario eliminado correctamente", "success");
@@ -77,7 +78,7 @@ function Admin() {
     if (!confirm.isConfirmed) return;
 
     try {
-      await axios.delete(`http://localhost:3000/api/products/${id}`);
+      await axios.delete(`${API_URL}/products/${id}`);
       Swal.fire("Eliminado", "Servicio eliminado correctamente", "success");
       fetchData();
     } catch {
@@ -99,7 +100,7 @@ function Admin() {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:3000/api/admin/comments/${id}`, {
+      await axios.delete(`${API_URL}/admin/comments/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       setComments((current) => current.filter((comment) => comment.id !== id));

@@ -2,6 +2,7 @@ import { UserModel } from "../models/user.models.js";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { uploadProductImage } from "../services/cloudinary.js";
 
 dotenv.config();
 
@@ -14,18 +15,27 @@ const serviceCategories = [
 // ======================== CREAR USUARIO ADMIN POR DEFECTO ========================
 export const createDefaultAdmin = async () => {
   try {
-    const adminEmail = "admin@tdos.com";
-    const adminPassword = await bcryptjs.hash("admin123", 10);
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      console.log("ADMIN_EMAIL y ADMIN_PASSWORD no configurados; se omite la creación del administrador");
+      return;
+    }
 
     const existingAdmin = await UserModel.findByEmail(adminEmail);
     if (!existingAdmin) {
-      await UserModel.newuser("Administrador", adminEmail, adminPassword, true);
+      const hashedPassword = await bcryptjs.hash(adminPassword, 10);
+      await UserModel.newuser("Administrador", adminEmail, hashedPassword, true);
       console.log("✅ Usuario administrador creado con éxito");
     } else {
-      console.log("ℹ️ El usuario administrador ya existe");
+      const hashedPassword = await bcryptjs.hash(adminPassword, 10);
+      await UserModel.updateAdminCredentials(adminEmail, hashedPassword);
+      console.log("ℹ️ Credenciales del administrador sincronizadas desde variables de entorno");
     }
   } catch (error) {
     console.error("❌ Error al crear el usuario administrador:", error);
+    throw error;
   }
 };
 
@@ -89,13 +99,17 @@ export const login = async (req, res) => {
 // ======================== SERVICIOS ========================
 export const createProducts = async (req, res) => {
   const { title, description, price, category } = req.body;
-  const image_url = req.file ? req.file.path : null;
 
   if (!serviceCategories.includes(category)) {
     return res.status(400).json({ message: "Selecciona una categoría de servicio válida" });
   }
 
   try {
+    const image_url = req.file
+      ? req.file.buffer
+        ? await uploadProductImage(req.file)
+        : req.file.path
+      : null;
     const userId = req.userId || null;
     const product = await UserModel.createProduct(title, description, price, category, image_url, userId);
     return res.status(201).json(product);

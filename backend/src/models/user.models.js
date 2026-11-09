@@ -20,6 +20,14 @@ const findByEmail = async (email) => {
   return result.rows[0];
 };
 
+const updateAdminCredentials = async (email, password) => {
+  const result = await pool.query(
+    `UPDATE users SET password = $1, is_admin = true WHERE email = $2 RETURNING *`,
+    [password, email]
+  );
+  return result.rows[0];
+};
+
 const findById = async (id) => {
   const result = await pool.query(`SELECT id, name, email, is_admin FROM users WHERE id = $1`, [id]);
   return result.rows[0];
@@ -361,6 +369,7 @@ const createChatBot = async (text, sender, user_id) => {
 export const UserModel = {
   newuser,
   findByEmail,
+  updateAdminCredentials,
   findById,
   createProduct,
   editProduct,

@@ -2,10 +2,11 @@
 import { Edit, Trash, PlusCircle, XCircle, ImageOff } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useState } from 'react';
+import { API_URL, apiAssetUrl } from '../../config/api';
 
 const ProductCard = ({ product, handleEdit, handleDelete, onPublishChange }) => {
   const imageUrl = product.image_url
-    ? `http://localhost:3000/${product.image_url.replace(/\\/g, '/')}`
+    ? apiAssetUrl(product.image_url)
     : null;
   const [isPublished, setIsPublished] = useState(product.is_published || false);
   const [loading, setLoading] = useState(false);
@@ -16,7 +17,7 @@ const ProductCard = ({ product, handleEdit, handleDelete, onPublishChange }) => 
       const token = localStorage.getItem('token');
       const newStatus = !isPublished;
       
-      const response = await fetch(`http://localhost:3000/api/products/${product.id}/publish`, {
+      const response = await fetch(`${API_URL}/products/${product.id}/publish`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

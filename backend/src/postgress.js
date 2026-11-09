@@ -1,4 +1,6 @@
-import { pool } from "./config/db.js"
+import { pool, databaseReady } from "./config/db.js"
+
+await databaseReady;
 
 // con el comando "npm run db" en la terminal se pueden ver estas consultas
 
