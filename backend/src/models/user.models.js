@@ -42,12 +42,12 @@ const createProduct = async (title, description, price, category, image_url, use
   return result.rows[0];
 };
 
-const editProduct = async (id, title, description, price, category) => {
+const editProduct = async (id, title, description, price, category, image_url) => {
   const result = await pool.query(
     `UPDATE products
-     SET title=$1, description=$2, price=$3, category=$4
-     WHERE id=$5 RETURNING *`,
-    [title, description, price, category, id]
+     SET title=$1, description=$2, price=$3, category=$4, image_url=COALESCE($5, image_url)
+     WHERE id=$6 RETURNING *`,
+    [title, description, price, category, image_url, id]
   );
   return result.rows[0];
 };

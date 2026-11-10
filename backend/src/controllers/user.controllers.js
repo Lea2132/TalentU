@@ -138,7 +138,12 @@ export const editProduct = async (req, res) => {
   }
 
   try {
-    const product = await UserModel.editProduct(id, title, description, price, category);
+    const image_url = req.file
+      ? req.file.buffer
+        ? await uploadProductImage(req.file)
+        : req.file.path
+      : null;
+    const product = await UserModel.editProduct(id, title, description, price, category, image_url);
     return res.status(200).json(product);
   } catch (error) {
     return res.status(500).json({ message: error.message });
